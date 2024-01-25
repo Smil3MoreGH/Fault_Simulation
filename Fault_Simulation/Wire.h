@@ -12,8 +12,13 @@ public:
 
     // Getter for the name
     const std::string& getName() const;
-
+    
+    void setFault(bool isFaulted, bool faultValue);
+    void clearFault();
+    
 private:
     std::string name;
     bool value;
+    bool isFaulted = false;
+    bool faultValue;
 };

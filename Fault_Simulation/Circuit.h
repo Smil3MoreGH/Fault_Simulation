@@ -10,12 +10,14 @@ public:
     ~Circuit();
 
     void loadFromFile(const std::string& filepath);
+    void runAndPrintGoodSimulation();
+    void runFaultedSimulation();
 
     std::vector<std::vector<bool>> runGoodSimulation();
-
-    void runFaultedSimulation();
     void printGoodSimulationResults(const std::vector<std::vector<bool>>& results);
-    void runAndPrintGoodSimulation();
+    bool compareResults(const std::vector<std::vector<bool>>& goodResults, 
+                             const std::vector<std::vector<bool>>& faultedResults,
+                             Wire* wire, int faultType);
 
     std::vector<Wire*> inputs;
     std::vector<Wire*> outputs;
@@ -23,8 +25,11 @@ public:
     std::vector<Gate*> gates;
 
     Wire* findWireByName(const std::string& name);
+    std::vector<Wire*> getAllWires() const;
     void addInput(Wire* wire);
     void addOutput(Wire* wire);
     void addInternalWire(Wire* wire);
     void addGate(Gate* gate);
+    void injectFault(Wire* wire, bool faultType);
+    void removeFault(Wire* wire);
 };

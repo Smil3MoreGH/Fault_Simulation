@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
     
     circuit.loadFromFile(filepathC17_better);
     circuit.runAndPrintGoodSimulation();
-    //circuit.runFaultedSimulation();
+    circuit.runFaultedSimulation();
     
     return 0;
 }

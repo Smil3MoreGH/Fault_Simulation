@@ -72,28 +72,59 @@ void Circuit::printGoodSimulationResults(const std::vector<std::vector<bool>>& r
     }
 }
 
-/*
 void Circuit::runFaultedSimulation() {
     auto goodResults = runGoodSimulation();
 
     for (Wire* wire : getAllWires()) {
-        // For each wire, create two faults: stuck-at-0 and stuck-at-1
+        bool faultDetected[2] = {false, false};  // Track detection for stuck-at-0 and stuck-at-1
+
         for (int faultType = 0; faultType <= 1; ++faultType) {
-            // Inject fault
             injectFault(wire, faultType);
+            std::vector<std::vector<bool>> faultedResults = runGoodSimulation();
+            faultDetected[faultType] = compareResults(goodResults, faultedResults, wire, faultType);
+            removeFault(wire);
+        }
 
-            // Run simulation with the fault
-            std::vector<std::vector<bool>> faultedResults = runSimulationWithFault();
-
-            // Compare faulted results with good results
-            compareResults(goodResults, faultedResults);
-
-            // Remove fault before next iteration
-            removeFault(wire, faultType);
+        // Check if faults were undetected for this wire
+        for (int faultType = 0; faultType <= 1; ++faultType) {
+            if (!faultDetected[faultType]) {
+                std::cout << "Fault was undetected for " << wire->getName() << " stuck-at-" << faultType << "\n";
+            }
         }
     }
 }
-*/
+
+
+
+bool Circuit::compareResults(const std::vector<std::vector<bool>>& goodResults, 
+                             const std::vector<std::vector<bool>>& faultedResults,
+                             Wire* wire, int faultType) {
+    const size_t numInputs = inputs.size();
+    bool faultDetected = false;
+
+    for (size_t i = 0; i < goodResults.size(); ++i) {
+        if (goodResults[i] != faultedResults[i]) {
+            faultDetected = true;
+            // Print the input combination where the fault is detected
+            std::cout << "Fault detected on wire " << wire->getName() 
+                      << " stuck-at-" << faultType 
+                      << " with inputs: ";
+            for (size_t j = 0; j < numInputs; ++j) {
+                bool inputValue = (i >> j) & 1;
+                std::cout << inputs[j]->getName() << ": " << inputValue 
+                          << (j < numInputs - 1 ? " | " : " |");
+            }
+            std::cout << "\n";
+            break;  // Optionally break here if only reporting the first detection
+        }
+    }
+
+    if (!faultDetected) {
+        std::cout << "No fault detected on wire " << wire->getName() << " stuck-at-" << faultType << "\n";
+    }
+
+    return faultDetected;
+}
 
 Wire* Circuit::findWireByName(const std::string& name) {
     // Iterate through inputs to find the wire
@@ -110,6 +141,15 @@ Wire* Circuit::findWireByName(const std::string& name) {
     }
     return nullptr; // Wire not found
 }
+
+std::vector<Wire*> Circuit::getAllWires() const {
+    std::vector<Wire*> allWires;
+    allWires.insert(allWires.end(), inputs.begin(), inputs.end());
+    allWires.insert(allWires.end(), outputs.begin(), outputs.end());
+    allWires.insert(allWires.end(), internalWires.begin(), internalWires.end());
+    return allWires;
+}
+
 void Circuit::addInput(Wire* wire) {
     inputs.push_back(wire);
 }
@@ -124,4 +164,16 @@ void Circuit::addInternalWire(Wire* wire) {
 
 void Circuit::addGate(Gate* gate) {
     gates.push_back(gate);
+}
+
+void Circuit::injectFault(Wire* wire, bool faultType) {
+    if (wire) {
+        wire->setFault(true, faultType);
+    }
+}
+
+void Circuit::removeFault(Wire* wire) {
+    if (wire) {
+        wire->clearFault();
+    }
 }

@@ -8,8 +8,17 @@ Wire::~Wire() {
     
 }
 
+void Wire::setFault(bool isFaulted, bool faultValue) {
+    this->isFaulted = isFaulted;
+    this->faultValue = faultValue;
+}
+
+void Wire::clearFault() {
+    isFaulted = false;
+}
+
 bool Wire::getValue() const {
-    return value;
+    return isFaulted ? faultValue : value;
 }
 
 void Wire::setValue(bool val) {
