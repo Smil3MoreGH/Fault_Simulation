@@ -1,5 +1,5 @@
 ﻿#include "Circuit.h"
-
+#include <iostream>
 #include "Parser.h"
 
 Circuit::Circuit() {
@@ -20,11 +20,34 @@ void Circuit::loadFromFile(const std::string& filepath) {
 }
 
 void Circuit::runGoodSimulation() {
-    // TODO: 
+    const size_t numInputs = inputs.size();
+    const size_t numOutputs = outputs.size();
+    const size_t numCombinations = 1 << numInputs;  // 2^n combinations
+
+    for (size_t i = 0; i < numCombinations; ++i) {
+        // Set inputs based on the current combination
+        std::cout << "inputs: ";
+        for (size_t j = 0; j < numInputs; ++j) {
+            bool inputValue = (i >> j) & 1;  // Get the j-th bit of i
+            inputs[j]->setValue(inputValue);
+            std::cout << inputValue << (j < numInputs - 1 ? "," : " ");
+        }
+
+        // Compute the output of each gate
+        for (auto& gate : gates) {
+            gate->computeOutput();
+        }
+
+        // Print the outputs
+        std::cout << "gives outputs: ";
+        for (size_t k = 0; k < numOutputs; ++k) {
+            std::cout << outputs[k]->getValue() << (k < numOutputs - 1 ? "," : "\n");
+        }
+    }
 }
 
 void Circuit::runFaultedSimulation() {
-    // TODO: 
+    // TODO: Build a Stuck-at 0 and 1 fault list for all possible wires they can be either stuckat1 or stuckat0, then inject a fault one by one, then calculate these and save all results. Finally, Compare results of runGoodSimulation and runFaultedSimulation.
 }
 
 
