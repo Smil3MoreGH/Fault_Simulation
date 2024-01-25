@@ -170,6 +170,7 @@
     <Content Include="Benches\C17_orig.v" />
     <Content Include="Benches\C17_verbessert.v" />
     <Content Include="Benches\ethernet_synth_NEW.v" />
+    <Content Include="Benches\TestB.v" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -50,9 +50,21 @@ std::vector<std::vector<bool>> Circuit::runGoodSimulation() {
 
         // Store the collected output values
         simulationResults.push_back(currentOutput);
+        
+        // Reset all wire values to 0 for the next combination
+        //resetAllWires();
     }
 
     return simulationResults;
+}
+
+void Circuit::resetAllWires()
+{
+    // Reset all wire values to 0 before starting fault simulation
+    for (Wire* wire : getAllWires()) {
+        wire->setValue(false); // Set to 0
+    }
+
 }
 
 void Circuit::printGoodSimulationResults(const std::vector<std::vector<bool>>& results) {
@@ -75,7 +87,7 @@ void Circuit::printGoodSimulationResults(const std::vector<std::vector<bool>>& r
 void Circuit::runFaultedSimulation() {
     auto goodResults = runGoodSimulation();
 
-    for (Wire* wire : getAllWires()) {
+    for (Wire* wire : getAllWiresButOutputs()) {
         bool faultDetected[2] = {false, false};  // Track detection for stuck-at-0 and stuck-at-1
 
         for (int faultType = 0; faultType <= 1; ++faultType) {
@@ -146,6 +158,12 @@ std::vector<Wire*> Circuit::getAllWires() const {
     std::vector<Wire*> allWires;
     allWires.insert(allWires.end(), inputs.begin(), inputs.end());
     allWires.insert(allWires.end(), outputs.begin(), outputs.end());
+    allWires.insert(allWires.end(), internalWires.begin(), internalWires.end());
+    return allWires;
+}
+std::vector<Wire*> Circuit::getAllWiresButOutputs() const {
+    std::vector<Wire*> allWires;
+    allWires.insert(allWires.end(), inputs.begin(), inputs.end());
     allWires.insert(allWires.end(), internalWires.begin(), internalWires.end());
     return allWires;
 }

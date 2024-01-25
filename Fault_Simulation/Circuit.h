@@ -26,10 +26,12 @@ public:
 
     Wire* findWireByName(const std::string& name);
     std::vector<Wire*> getAllWires() const;
+    std::vector<Wire*> getAllWiresButOutputs() const;
     void addInput(Wire* wire);
     void addOutput(Wire* wire);
     void addInternalWire(Wire* wire);
     void addGate(Gate* gate);
     void injectFault(Wire* wire, bool faultType);
     void removeFault(Wire* wire);
+    void resetAllWires();
 };
