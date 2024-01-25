@@ -18,38 +18,82 @@ void Circuit::loadFromFile(const std::string& filepath) {
     Parser parser;
     parser.parse(filepath, *this);
 }
+void Circuit::runAndPrintGoodSimulation() {
+    auto results = runGoodSimulation();
+    printGoodSimulationResults(results);
+}
 
-void Circuit::runGoodSimulation() {
+
+
+std::vector<std::vector<bool>> Circuit::runGoodSimulation() {
     const size_t numInputs = inputs.size();
     const size_t numOutputs = outputs.size();
-    const size_t numCombinations = 1 << numInputs;  // 2^n combinations
+    const size_t numCombinations = 1 << numInputs;  
+
+    std::vector<std::vector<bool>> simulationResults;
 
     for (size_t i = 0; i < numCombinations; ++i) {
-        // Set inputs based on the current combination
-        std::cout << "inputs: ";
         for (size_t j = 0; j < numInputs; ++j) {
-            bool inputValue = (i >> j) & 1;  // Get the j-th bit of i
+            bool inputValue = (i >> j) & 1;
             inputs[j]->setValue(inputValue);
-            std::cout << inputValue << (j < numInputs - 1 ? "," : " ");
         }
 
-        // Compute the output of each gate
         for (auto& gate : gates) {
             gate->computeOutput();
         }
 
-        // Print the outputs
-        std::cout << "gives outputs: ";
+        // Collect output values for this combination
+        std::vector<bool> currentOutput;
         for (size_t k = 0; k < numOutputs; ++k) {
-            std::cout << outputs[k]->getValue() << (k < numOutputs - 1 ? "," : "\n");
+            currentOutput.push_back(outputs[k]->getValue());
+        }
+
+        // Store the collected output values
+        simulationResults.push_back(currentOutput);
+    }
+
+    return simulationResults;
+}
+
+void Circuit::printGoodSimulationResults(const std::vector<std::vector<bool>>& results) {
+    const size_t numInputs = inputs.size();
+    const size_t numCombinations = 1 << numInputs;
+
+    for (size_t i = 0; i < numCombinations; ++i) {
+        std::cout << "inputs: ";
+        for (size_t j = 0; j < numInputs; ++j) {
+            std::cout << ((i >> j) & 1) << (j < numInputs - 1 ? "," : " ");
+        }
+
+        std::cout << "gives outputs: ";
+        for (size_t k = 0; k < results[i].size(); ++k) {
+            std::cout << results[i][k] << (k < results[i].size() - 1 ? "," : "\n");
         }
     }
 }
 
+/*
 void Circuit::runFaultedSimulation() {
-    // TODO: Build a Stuck-at 0 and 1 fault list for all possible wires they can be either stuckat1 or stuckat0, then inject a fault one by one, then calculate these and save all results. Finally, Compare results of runGoodSimulation and runFaultedSimulation.
-}
+    auto goodResults = runGoodSimulation();
 
+    for (Wire* wire : getAllWires()) {
+        // For each wire, create two faults: stuck-at-0 and stuck-at-1
+        for (int faultType = 0; faultType <= 1; ++faultType) {
+            // Inject fault
+            injectFault(wire, faultType);
+
+            // Run simulation with the fault
+            std::vector<std::vector<bool>> faultedResults = runSimulationWithFault();
+
+            // Compare faulted results with good results
+            compareResults(goodResults, faultedResults);
+
+            // Remove fault before next iteration
+            removeFault(wire, faultType);
+        }
+    }
+}
+*/
 
 Wire* Circuit::findWireByName(const std::string& name) {
     // Iterate through inputs to find the wire

@@ -11,9 +11,11 @@ public:
 
     void loadFromFile(const std::string& filepath);
 
-    void runGoodSimulation();
+    std::vector<std::vector<bool>> runGoodSimulation();
 
     void runFaultedSimulation();
+    void printGoodSimulationResults(const std::vector<std::vector<bool>>& results);
+    void runAndPrintGoodSimulation();
 
     std::vector<Wire*> inputs;
     std::vector<Wire*> outputs;
