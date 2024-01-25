@@ -12,7 +12,7 @@ Gate::~Gate() {
 
 void Gate::computeOutput() {
     bool val1 = input1 ? (negInput1 ? !input1->getValue() : input1->getValue()) : false;
-    bool val2 = (input2 && type != Gate::NOT) ? (negInput2 ? !input2->getValue() : input2->getValue()) : false;
+    bool val2 = (input2 && type != Gate::NOT && type != Gate::BUFFER) ? (negInput2 ? !input2->getValue() : input2->getValue()) : false;
     bool result;
 
     switch (type) {
@@ -23,13 +23,16 @@ void Gate::computeOutput() {
         result = val1 || val2;
         break;
     case NOT:
-        result = !val1;  // For NOT gate, only consider the first input
+        result = !val1;
+        break;
+    case BUFFER:
+        result = val1;  // For BUFFER gate, directly pass the input to output
         break;
     default:
         result = false;
         break;
     }
 
-    output->setValue(result);  // Directly set the output value
+    output->setValue(result);
 }
 

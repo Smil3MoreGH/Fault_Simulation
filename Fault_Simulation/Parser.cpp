@@ -142,73 +142,75 @@ void Parser::parseAssign(const std::string& line, Circuit& circuit) {
     std::getline(iss, leftPart, '=');
     std::getline(iss, rightPart);
 
-    // Trim spaces and semicolons from both parts
-    auto trim = [](const std::string& str) -> std::string {
-        size_t start = str.find_first_not_of(" \t\n");
-        size_t end = str.find_last_not_of(" \t\n;");
-        return start != std::string::npos ? str.substr(start, end - start + 1) : "";
-    };
-
     leftPart = trim(leftPart);
     rightPart = trim(rightPart);
 
     Gate::GateType gateType;
-    char delimiter;
-    bool isPossibleNot = rightPart.find("&") == std::string::npos && rightPart.find("|") == std::string::npos;
+    char delimiter = ' '; // Initialize with a default value
+    bool isPossibleNotorBUFFER = rightPart.find("&") == std::string::npos && rightPart.find("|") == std::string::npos;
     if (rightPart.find("&") != std::string::npos) {
         gateType = Gate::AND;
         delimiter = '&';
     } else if (rightPart.find("|") != std::string::npos) {
         gateType = Gate::OR;
         delimiter = '|';
-    } else if (isPossibleNot) {
-        gateType = Gate::NOT;
-        delimiter = ' '; // Dummy delimiter, not used in NOT gates
+    } else if (isPossibleNotorBUFFER) {
+        // Check for '~' to distinguish between NOT and BUFFER
+        if (rightPart.find("~") != std::string::npos) {
+            gateType = Gate::NOT;
+            delimiter = 'N';
+        } else {
+            gateType = Gate::BUFFER;
+            delimiter = 'B';
+        }
     }
 
-    // Split right part into input1 and input2 based on the gate type
-    std::istringstream inout(rightPart);
     std::string input1, input2;
-    if (gateType != Gate::NOT) {
+    Wire* wireInput1 = nullptr;
+    Wire* wireInput2 = nullptr;
+    bool negInput1 = false;
+    bool negInput2 = false;
+
+    if (gateType == Gate::AND || gateType == Gate::OR) {
+        std::istringstream inout(rightPart);
         std::getline(inout, input1, delimiter);
         std::getline(inout, input2);
-        input1 = trim(input1);
+
+        input1= trim(input1);
         input2 = trim(input2);
-    } else {
-        std::getline(inout, input1);
-        input1 = trim(input1);
-    }
-
-    // Check for '~' and update negation variables
-    bool negInput1 = !input1.empty() && input1[0] == '~';
-    if (negInput1) {
-        input1.erase(0, 1);
-    }
-    bool negInput2 = !input2.empty() && input2[0] == '~';
-    if (negInput2) {
-        input2.erase(0, 1);
-    }
         
-    Wire* wireInput1 = circuit.findWireByName(input1);
-    if (!wireInput1) {
-        std::cout << "input1 nicht gefunden: " << input1 << std::endl;
-    }
-
-    Wire* wireInput2 = nullptr;
-    if (!input2.empty()) {
-        wireInput2 = circuit.findWireByName(input2);
-        if (!wireInput2) {
-            std::cout << "input2 nicht gefunden: " << input2 << std::endl;
+        // Check for '~' and update negation variables for each input
+        negInput1 = !input1.empty() && input1[0] == '~';
+        if (negInput1) {
+            input1.erase(0, 1);  // Remove '~' if present
         }
+        negInput2 = !input2.empty() && input2[0] == '~';
+        if (negInput2) {
+            input2.erase(0, 1);  // Remove '~' if present
+        }
+        
+        wireInput1 = circuit.findWireByName(input1);
+        wireInput2 = circuit.findWireByName(input2);
+
+    } else if (gateType == Gate::NOT) {
+        // For NOT gates, only one input is used
+        bool negInput1 = !rightPart.empty() && rightPart[0] == '~';
+        if (negInput1) {
+            rightPart.erase(0, 1);  // Remove '~' if present
+        }
+        wireInput1 = circuit.findWireByName(trim(rightPart));
+    } else if (gateType == Gate::BUFFER) {
+        // For BUFFER gates, treat the right part as a single input wire
+        wireInput1 = circuit.findWireByName(trim(rightPart));
     }
 
     Wire* wireOutput = circuit.findWireByName(leftPart);
     if (!wireOutput) {
         std::cout << "leftPart nicht gefunden: " << leftPart << std::endl;
     }
-
     // Create the gate if required wires are found
-    if (wireOutput && wireInput1 && (wireInput2 || gateType == Gate::NOT)) {
+    if (wireOutput && wireInput1) {
+        // negInput1 and negInput2 are already set correctly above
         Gate* newGate = new Gate(gateType, wireInput1, wireInput2, wireOutput, negInput1, negInput2);
         circuit.addGate(newGate);
         std::cout << "Gate erstellt: " << wireOutput->getName() << std::endl;
@@ -217,6 +219,11 @@ void Parser::parseAssign(const std::string& line, Circuit& circuit) {
 
 std::string Parser::trim(const std::string& str) {
     size_t start = str.find_first_not_of(" \t\n");
+    if (start == std::string::npos) {
+        // The string consists only of spaces or is empty.
+        return "";
+    }
+    
     size_t end = str.find_last_not_of(" \t\n;");
-    return start != std::string::npos ? str.substr(start, end - start + 1) : "";
+    return str.substr(start, end - start + 1);
 }
