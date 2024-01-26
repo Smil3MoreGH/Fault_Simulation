@@ -2,12 +2,13 @@
 
 Gate::Gate(GateType type, Wire* input1, Wire* input2, Wire* output, bool negInput1, bool negInput2)
     : type(type), input1(input1), input2(input2), output(output), 
-      negInput1(negInput1), negInput2(negInput2) {
+      negInput1(negInput1), negInput2(negInput2), level(-1) // Initialize level to -1
+{
+    // Constructor body (if any additional initialization is needed)
 }
 
-
 Gate::~Gate() {
-    
+    // Destructor body (if any cleanup is needed)
 }
 
 void Gate::computeOutput() {
