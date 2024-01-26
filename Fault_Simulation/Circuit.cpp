@@ -1,5 +1,7 @@
 ﻿#include "Circuit.h"
 #include <iostream>
+#include <stack>
+
 #include "Parser.h"
 
 Circuit::Circuit() {
@@ -32,31 +34,83 @@ std::vector<std::vector<bool>> Circuit::runGoodSimulation() {
 
     std::vector<std::vector<bool>> simulationResults;
 
+    // Build the graph for the circuit
+    buildGraph();
+
+    // Perform topological sort to get gates in the order they should be computed
+    std::stack<Gate*> sortedGates = topologicalSort();
+
     for (size_t i = 0; i < numCombinations; ++i) {
         for (size_t j = 0; j < numInputs; ++j) {
             bool inputValue = (i >> j) & 1;
             inputs[j]->setValue(inputValue);
         }
-
-        for (auto& gate : gates) {
-            gate->computeOutput();
+        // Compute outputs using topologically sorted gates
+        std::stack<Gate*> tempSortedGates = sortedGates; // Copy sorted gates for this iteration
+        while (!tempSortedGates.empty()) {
+            Gate* currentGate = tempSortedGates.top();
+            currentGate->computeOutput();
+            tempSortedGates.pop();
         }
-
         // Collect output values for this combination
         std::vector<bool> currentOutput;
         for (size_t k = 0; k < numOutputs; ++k) {
             currentOutput.push_back(outputs[k]->getValue());
         }
-
         // Store the collected output values
         simulationResults.push_back(currentOutput);
-        
-        // Reset all wire values to 0 for the next combination
+        // Optionally, reset all wire values to 0 for the next combination
         //resetAllWires();
     }
-
     return simulationResults;
 }
+
+
+void Circuit::buildGraph() {
+    // Reset or initialize the adjacency list
+    adjList.clear();
+    // Iterate over all gates to build the graph
+    for (auto& gate : gates) {
+        // If the gate has an output wire, find which gates use this wire as an input
+        if (gate->getOutput() != nullptr) {
+            for (auto& dependentGate : gates) {
+                if (dependentGate->getInput1() == gate->getOutput() || 
+                    dependentGate->getInput2() == gate->getOutput()) {
+                    adjList[gate].push_back(dependentGate);
+                    }
+            }
+        }
+    }
+}
+void Circuit::topologicalSortUtil(Gate* gate, std::map<Gate*, bool>& visited, std::stack<Gate*>& stack) {
+    visited[gate] = true;
+    // Recursively call this function for all gates dependent on this gate
+    for (auto& dependentGate : adjList[gate]) {
+        if (!visited[dependentGate]) {
+            topologicalSortUtil(dependentGate, visited, stack);
+        }
+    }
+    // Push current gate to stack which stores the result
+    stack.push(gate);
+}
+
+std::stack<Gate*> Circuit::topologicalSort() {
+    std::stack<Gate*> stack;
+    std::map<Gate*, bool> visited;
+    // Mark all the gates as not visited
+    for (auto& gate : gates) {
+        visited[gate] = false;
+    }
+    // Call the recursive helper function to store the Topological Sort
+    for (auto& gate : gates) {
+        if (!visited[gate]) {
+            topologicalSortUtil(gate, visited, stack);
+        }
+    }
+    return stack;
+}
+
+
 
 void Circuit::resetAllWires()
 {

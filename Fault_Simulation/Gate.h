@@ -8,8 +8,9 @@ public:
     ~Gate();
 
     void computeOutput();
-    void setLevel(int l) { level = l; }
-    int getLevel() const { return level; }
+    Wire* getInput1() const { return input1; }
+    Wire* getInput2() const { return input2; }
+    Wire* getOutput() const { return output; }
 
 private:
     GateType type;
@@ -18,5 +19,4 @@ private:
     Wire* output;
     bool negInput1;
     bool negInput2;
-    int level;
 };

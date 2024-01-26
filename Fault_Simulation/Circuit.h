@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <map>
+#include <stack>
 #include <vector>
 #include <string>
 #include "Wire.h"
@@ -23,6 +25,13 @@ public:
     std::vector<Wire*> outputs;
     std::vector<Wire*> internalWires;
     std::vector<Gate*> gates;
+
+    // Neu fürs mapping
+    std::map<Gate*, std::vector<Gate*>> adjList;
+
+    void buildGraph();
+    void topologicalSortUtil(Gate* gate, std::map<Gate*, bool>& visited, std::stack<Gate*>& stack);
+    std::stack<Gate*> topologicalSort();
 
     Wire* findWireByName(const std::string& name);
     std::vector<Wire*> getAllWires() const;

@@ -82,7 +82,7 @@ void Parser::parseInput(const std::string& line, Circuit& circuit) {
             // Erstellen des Gates und Hinzufügen zum Schaltkreis
             Wire* newWire = new Wire(token);
             circuit.addInput(newWire);
-            std::cout << "Input Wire erstellt: " << token << std::endl;
+            //std::cout << "Input Wire erstellt: " << token << std::endl;
         }
     }
 }
@@ -106,7 +106,7 @@ void Parser::parseOutput(const std::string& line, Circuit& circuit) {
 
             Wire* newWire = new Wire(token);
             circuit.addOutput(newWire);
-            std::cout << "Output Wire erstellt: " << token << std::endl;
+            //std::cout << "Output Wire erstellt: " << token << std::endl;
         }
     }
 }
@@ -130,7 +130,7 @@ void Parser::parseWire(const std::string& line, Circuit& circuit) {
 
             Wire* newWire = new Wire(token);
             circuit.addInternalWire(newWire);
-            std::cout << "Internal Wire erstellt: " << token << std::endl;
+            //std::cout << "Internal Wire erstellt: " << token << std::endl;
         }
     }
 }
@@ -213,7 +213,7 @@ void Parser::parseAssign(const std::string& line, Circuit& circuit) {
         // negInput1 and negInput2 are already set correctly above
         Gate* newGate = new Gate(gateType, wireInput1, wireInput2, wireOutput, negInput1, negInput2);
         circuit.addGate(newGate);
-        std::cout << "Gate erstellt: " << wireOutput->getName() << std::endl;
+        //std::cout << "Gate erstellt: " << wireOutput->getName() << std::endl;
     }
 }
 
