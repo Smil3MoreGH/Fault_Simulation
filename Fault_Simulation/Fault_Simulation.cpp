@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
     std::string filepathC17_better = "C:/Users/Paul/RiderProjects/Fault_Simulation/Fault_Simulation/Benches/C17_verbessert.v";
     std::string filepathTestB = "C:/Users/Paul/RiderProjects/Fault_Simulation/Fault_Simulation/Benches/TestB.v";
     
-    circuit.loadFromFile(filepathTestB);
+    circuit.loadFromFile(filepathC17_better);
     circuit.runAndPrintGoodSimulation();
     circuit.runFaultedSimulation();
     
