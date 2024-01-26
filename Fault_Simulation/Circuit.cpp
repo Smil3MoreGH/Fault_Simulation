@@ -1,7 +1,7 @@
 ﻿#include "Circuit.h"
+#include <fstream>
 #include <iostream>
 #include <stack>
-
 #include "Parser.h"
 
 Circuit::Circuit() {
@@ -125,17 +125,21 @@ void Circuit::printGoodSimulationResults(const std::vector<std::vector<bool>>& r
     const size_t numInputs = inputs.size();
     const size_t numCombinations = 1 << numInputs;
 
+    std::ofstream outFile("simulation_results.txt"); // Open file for writing
+
     for (size_t i = 0; i < numCombinations; ++i) {
-        std::cout << "inputs: ";
+        outFile << "inputs: ";
         for (size_t j = 0; j < numInputs; ++j) {
-            std::cout << ((i >> j) & 1) << (j < numInputs - 1 ? "," : " ");
+            outFile << ((i >> j) & 1) << (j < numInputs - 1 ? "," : " ");
         }
 
-        std::cout << "gives outputs: ";
+        outFile << "gives outputs: ";
         for (size_t k = 0; k < results[i].size(); ++k) {
-            std::cout << results[i][k] << (k < results[i].size() - 1 ? "," : "\n");
+            outFile << results[i][k] << (k < results[i].size() - 1 ? "," : "\n");
         }
     }
+
+    outFile.close(); // Close the file
 }
 
 void Circuit::runFaultedSimulation() {
@@ -168,29 +172,31 @@ bool Circuit::compareResults(const std::vector<std::vector<bool>>& goodResults,
     const size_t numInputs = inputs.size();
     bool faultDetected = false;
 
+    std::ofstream outFile("stuck-at-results.txt", std::ios::app); // Open file in append mode
+
     for (size_t i = 0; i < goodResults.size(); ++i) {
         if (goodResults[i] != faultedResults[i]) {
             faultDetected = true;
-            // Print the input combination where the fault is detected
-            std::cout << "Fault detected on wire " << wire->getName() 
-                      << " stuck-at-" << faultType 
-                      << " with inputs: ";
+            outFile << "\\" << wire->getName() 
+                    << " stuck-at-" << faultType 
+                    << " with inputs: ";
             for (size_t j = 0; j < numInputs; ++j) {
                 bool inputValue = (i >> j) & 1;
-                std::cout << inputs[j]->getName() << ": " << inputValue 
-                          << (j < numInputs - 1 ? " | " : " |");
+                outFile << inputValue << (j < numInputs - 1 ? ", " : "");
             }
-            std::cout << "\n";
+            outFile << "\n";
             break;  // Optionally break here if only reporting the first detection
         }
     }
 
     if (!faultDetected) {
-        std::cout << "No fault detected on wire " << wire->getName() << " stuck-at-" << faultType << "\n";
+        outFile << "No fault detected on wire \\" << wire->getName() << " stuck-at-" << faultType << "\n";
     }
 
+    outFile.close();  // Don't forget to close the file
     return faultDetected;
 }
+
 
 Wire* Circuit::findWireByName(const std::string& name) {
     // Iterate through inputs to find the wire
