@@ -7,6 +7,10 @@ Parser::Parser() {
     
 }
 
+Parser::~Parser() {
+    
+}
+
 // Parses the file at the given filepath and updates the provided Circuit object based on the file's contents.
 void Parser::parse(const std::string& filepath, Circuit& circuit) {
     std::ifstream file(filepath); // Opens the file for reading.

@@ -25,8 +25,6 @@ public:
     std::vector<Wire*> outputs;
     std::vector<Wire*> internalWires;
     std::vector<Gate*> gates;
-
-    // Neu fürs mapping
     std::map<Gate*, std::vector<Gate*>> adjList;
 
     void buildGraph();
@@ -42,5 +40,4 @@ public:
     void addGate(Gate* gate);
     void injectFault(Wire* wire, bool faultType);
     void removeFault(Wire* wire);
-    void resetAllWires();
 };

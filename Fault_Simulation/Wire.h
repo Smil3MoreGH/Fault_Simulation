@@ -3,14 +3,12 @@
 
 class Wire {
 public:
-    Wire(const std::string& name); // Constructor
-    ~Wire(); // Destructor
-
-    // Getter and Setter for the value
+    Wire(const std::string& name);
+    ~Wire();
+    
     bool getValue() const;
     void setValue(bool val);
-
-    // Getter for the name
+    
     const std::string& getName() const;
     
     void setFault(bool isFaulted, bool faultValue);
