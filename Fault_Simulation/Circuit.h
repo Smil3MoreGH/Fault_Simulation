@@ -14,6 +14,8 @@ public:
     void loadFromFile(const std::string& filepath);
     void runAndPrintGoodSimulation();
     void runFaultedSimulation();
+    void printGoodSimulationResultsToConsole(const std::vector<std::vector<bool>>& results);
+    bool compareResultsToConsole(const std::vector<std::vector<bool>>& goodResults, const std::vector<std::vector<bool>>& faultedResults, Wire* wire, int faultType);
 
     std::vector<std::vector<bool>> runGoodSimulation();
     void printGoodSimulationResults(const std::vector<std::vector<bool>>& results);

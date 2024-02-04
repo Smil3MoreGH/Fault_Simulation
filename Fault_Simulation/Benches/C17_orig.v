@@ -22,4 +22,3 @@ wire   \[1] ;
   assign \16GAT(8)  = ~\11GAT(5)  | ~\2GAT(1) ;
   assign \[1]  = ~\19GAT(7)  | ~\16GAT(8) ;
 end;
-
