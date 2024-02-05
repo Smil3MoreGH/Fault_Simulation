@@ -24,7 +24,52 @@ void Circuit::loadFromFile(const std::string& filepath) {
 void Circuit::runAndPrintGoodSimulation() {
     auto results = runGoodSimulation();
     printGoodSimulationResultsToConsole(results);
-    //printGoodSimulationResults(results);
+    printGoodSimulationResults(results);
+
+    //generateRandomInputs();
+    //auto bigresults = runBigGoodSimulation();
+    //printBigGoodSimulationResultsToConsole(bigresults);
+}
+
+void Circuit::generateRandomInputs() {
+    const size_t numInputs = inputs.size();
+    srand(static_cast<unsigned int>(time(nullptr)));
+    randomInputCombinations.clear();
+
+    for (size_t i = 0; i < 3; ++i) {
+        std::vector<bool> currentInputs;
+        for (size_t j = 0; j < numInputs; ++j) {
+            bool inputValue = rand() % 2;
+            currentInputs.push_back(inputValue);
+        }
+        randomInputCombinations.push_back(currentInputs);
+    }
+}
+
+std::vector<std::vector<bool>> Circuit::runBigGoodSimulation() {
+    const size_t numInputs = inputs.size();
+    const size_t numOutputs = outputs.size();
+    std::vector<std::vector<bool>> simulationResults;
+    buildGraph();
+    std::stack<Gate*> sortedGates = topologicalSort();
+
+    for (const auto& currentInputs : randomInputCombinations) {
+        for (size_t j = 0; j < numInputs; ++j) {
+            inputs[j]->setValue(currentInputs[j]);
+        }
+        std::stack<Gate*> tempSortedGates = sortedGates;
+        while (!tempSortedGates.empty()) {
+            Gate* currentGate = tempSortedGates.top();
+            currentGate->computeOutput();
+            tempSortedGates.pop();
+        }
+        std::vector<bool> currentOutput;
+        for (size_t k = 0; k < numOutputs; ++k) {
+            currentOutput.push_back(outputs[k]->getValue());
+        }
+        simulationResults.push_back(currentOutput);
+    }
+    return simulationResults;
 }
 
 // Runs a comprehensive simulation of the circuit for all possible input combinations and collects the results.
@@ -207,6 +252,24 @@ void Circuit::printGoodSimulationResultsToConsole(const std::vector<std::vector<
     }
 }
 
+void Circuit::printBigGoodSimulationResultsToConsole(const std::vector<std::vector<bool>>& results) {
+    if (randomInputCombinations.size() != results.size()) {
+        std::cerr << "Error: The number of input combinations and results does not match." << std::endl;
+        return;
+    }
+    
+    for (size_t i = 0; i < randomInputCombinations.size(); ++i) {
+        std::cout << "inputs: ";
+        for (size_t j = 0; j < randomInputCombinations[i].size(); ++j) {
+            std::cout << randomInputCombinations[i][j] << (j < randomInputCombinations[i].size() - 1 ? "," : " ");
+        }
+        std::cout << "gives outputs: ";
+        for (size_t k = 0; k < results[i].size(); ++k) {
+            std::cout << results[i][k] << (k < results[i].size() - 1 ? "," : "\n");
+        }
+    }
+}
+
 // Conducts a fault simulation for the entire circuit, testing for stuck-at-0 and stuck-at-1 faults on all wires except outputs.
 void Circuit::runFaultedSimulation() {
     // First, run a simulation of the circuit without any faults to establish a baseline of correct behavior.
@@ -244,6 +307,43 @@ void Circuit::runFaultedSimulation() {
     }
     // This process effectively tests the circuit's ability to detect stuck-at faults in all non-output wires,
     // highlighting potential vulnerabilities in the circuit's design or testing methodology.
+}
+
+void Circuit::runBigFaultedSimulation() {
+    auto goodResults = runBigGoodSimulation();
+    auto allWires = getAllWiresButOutputs();
+    size_t numWiresToTest = std::min(allWires.size(), size_t(4));
+
+    for (size_t i = 0; i < numWiresToTest; ++i) {
+        Wire* wire = allWires[i];
+        bool faultDetected[2] = {false, false};
+        for (int faultType = 0; faultType <= 1; ++faultType) {
+            injectFault(wire, faultType);
+            std::vector<std::vector<bool>> faultedResults = runBigGoodSimulation();
+            faultDetected[faultType] = compareBigResultsToConsole(goodResults, faultedResults, wire, faultType);
+            removeFault(wire);
+        }
+    }
+}
+
+bool Circuit::compareBigResultsToConsole(const std::vector<std::vector<bool>>& goodResults, const std::vector<std::vector<bool>>& faultedResults, Wire* wire, int faultType) {
+    bool faultDetected = false;
+    for (size_t i = 0; i < goodResults.size(); ++i) {
+        if (goodResults[i] != faultedResults[i]) {
+            faultDetected = true;
+            std::cout << wire->getName() << " stuck-at-" << faultType << " with inputs: ";
+            const auto& inputsForThisTest = randomInputCombinations[i];
+            for (size_t j = 0; j < inputsForThisTest.size(); ++j) {
+                std::cout << inputsForThisTest[j] << (j < inputsForThisTest.size() - 1 ? ", " : "");
+            }
+            std::cout << " leads to different outputs.\n";
+            break;
+        }
+    }
+    if (!faultDetected) {
+        std::cout << "No fault detected on wire " << wire->getName() << " stuck-at-" << faultType << ".\n";
+    }
+    return faultDetected;
 }
 
 // Compares the outputs from a fault-free simulation against outputs with a fault injected to determine if the fault is detectable.

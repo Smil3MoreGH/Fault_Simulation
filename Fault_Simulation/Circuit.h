@@ -17,6 +17,17 @@ public:
     void printGoodSimulationResultsToConsole(const std::vector<std::vector<bool>>& results);
     bool compareResultsToConsole(const std::vector<std::vector<bool>>& goodResults, const std::vector<std::vector<bool>>& faultedResults, Wire* wire, int faultType);
 
+    
+    std::vector<std::vector<bool>> randomInputCombinations;
+    std::vector<std::vector<bool>> runBigGoodSimulation();
+    void runBigFaultedSimulation();
+    void generateRandomInputs();
+    void printBigGoodSimulationResultsToConsole(const std::vector<std::vector<bool>>& results);
+    bool compareBigResultsToConsole(const std::vector<std::vector<bool>>& goodResults, 
+                             const std::vector<std::vector<bool>>& faultedResults,
+                             Wire* wire, int faultType);
+
+    
     std::vector<std::vector<bool>> runGoodSimulation();
     void printGoodSimulationResults(const std::vector<std::vector<bool>>& results);
     bool compareResults(const std::vector<std::vector<bool>>& goodResults, 
